@@ -14,9 +14,9 @@ PAST_DUE = ["past_due_30_59", "past_due_60_89", "past_due_90"]
 
 def clean(df):
     """Чистка по итогам проверок из sql/02_checks.sql"""
-    df = df[df.age >= 18].copy()                          # ошибка возраста
+    df = df[df.age >= 18].copy()                              # ошибка возраста
     df["revolving_util"] = df.revolving_util.clip(upper=1.5)  # выбросы лимитов
-    for col in PAST_DUE:                                  # служебные коды 96/98
+    for col in PAST_DUE:                                      # служебные коды 96/98
         df.loc[df[col] >= 90, col] = np.nan
     return df
 
@@ -42,13 +42,12 @@ def run():
     df[["client_id", "p_default", "risk_band", "scored_at"]].to_sql(
         "fact_scores", engine, if_exists="replace", index=False)
 
-    result = {
+    return {
         "auc": round(auc, 3),
         "gini": round(2 * auc - 1, 3),
         "clients_scored": len(df),
         "high_risk": int((df.risk_band == "high").sum()),
     }
-    return result
 
 
 if __name__ == "__main__":

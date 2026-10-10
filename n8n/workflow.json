@@ -1,0 +1,182 @@
+{
+  "name": "RiskRadar Daily Alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "a1f0c6d2-0001-4c1a-9e01-000000000001",
+      "name": "Каждый день 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/score",
+        "options": {}
+      },
+      "id": "a1f0c6d2-0002-4c1a-9e01-000000000002",
+      "name": "Пересчёт скоринга",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "ВСТАВЬ_СВОЙ_ID",
+        "text": "=📊 RiskRadar: ежедневный отчёт\n\nGini модели: {{ $json.gini }}\nКлиентов в группе высокого риска: {{ $json.high_risk }}\n\nНиже топ-3 клиента без просрочек 90+ с риск-заключениями.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "a1f0c6d2-0003-4c1a-9e01-000000000003",
+      "name": "Telegram: сводка",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8000/high-risk",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1f0c6d2-0004-4c1a-9e01-000000000004",
+      "name": "Топ клиентов",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7860/api/v1/run/4951b606-214f-4b02-a422-fb7612355d08",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ input_value: JSON.stringify($json), input_type: 'chat', output_type: 'chat' }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "a1f0c6d2-0005-4c1a-9e01-000000000005",
+      "name": "LangFlow: риск-заключение",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "chatId": "ВСТАВЬ_СВОЙ_ID",
+        "text": "=⚠️ Клиент {{ $('Топ клиентов').item.json.client_id }} | скор риска {{ $('Топ клиентов').item.json.p_default }}\n\n{{ $json.outputs[0].outputs[0].results.message.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "a1f0c6d2-0006-4c1a-9e01-000000000006",
+      "name": "Telegram: заключение",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Каждый день 09:00": {
+      "main": [
+        [
+          {
+            "node": "Пересчёт скоринга",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Пересчёт скоринга": {
+      "main": [
+        [
+          {
+            "node": "Telegram: сводка",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: сводка": {
+      "main": [
+        [
+          {
+            "node": "Топ клиентов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Топ клиентов": {
+      "main": [
+        [
+          {
+            "node": "LangFlow: риск-заключение",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LangFlow: риск-заключение": {
+      "main": [
+        [
+          {
+            "node": "Telegram: заключение",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

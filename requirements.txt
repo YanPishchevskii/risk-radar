@@ -1,0 +1,11 @@
+pandas
+numpy
+sqlalchemy
+psycopg[binary]
+scikit-learn
+statsmodels
+matplotlib
+jupyter
+fastapi
+uvicorn
+streamlit
