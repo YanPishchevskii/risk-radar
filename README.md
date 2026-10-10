@@ -132,7 +132,7 @@ Streamlit-дашборд ◄── PostgreSQL
 
 ## Как запустить
 
-1. Скачать `cs-training.csv` ([Give Me Some Credit, Kaggle](https://www.kaggle.com/c/GiveMeSomeCredit)) в `data/`
+1. Скачать данные (Give Me Some Credit с OpenML, без регистрации): `python src/get_data.py`
 2. Поднять сервисы:
    ```bash
    docker run -d --name pg -e POSTGRES_PASSWORD=risk -e POSTGRES_DB=risk -p 5432:5432 postgres:16
