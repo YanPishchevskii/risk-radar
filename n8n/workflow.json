@@ -105,7 +105,7 @@
     {
       "parameters": {
         "chatId": "ВСТАВЬ_СВОЙ_ID",
-        "text": "=⚠️ Клиент {{ $('Топ клиентов').item.json.client_id }} | скор риска {{ $('Топ клиентов').item.json.p_default }}\n\n{{ $json.outputs[0].outputs[0].results.message.text }}",
+        "text": "=Клиент {{ $('Топ клиентов').item.json.client_id }} | скор риска {{ $('Топ клиентов').item.json.p_default }}\n\n{{ $json.outputs[0].outputs[0].results.message.text }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
